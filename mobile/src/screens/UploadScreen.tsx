@@ -132,8 +132,7 @@ export default function UploadScreen() {
       )}
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.captionModal}
       >
         <View style={[styles.captionBox, { paddingBottom: insets.bottom + 20 }]}>
