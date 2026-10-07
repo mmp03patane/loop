@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
   Alert,
-  Platform,
   TextInput,
-  KeyboardAvoidingView,
+  Keyboard,
+  Platform,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useVideoPlayer, VideoView } from 'expo-video';
@@ -30,6 +30,24 @@ export default function UploadScreen() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
   const [uploadComplete, setUploadComplete] = useState(false);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+
+  useEffect(() => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const showSub = Keyboard.addListener(showEvent, (e) => {
+      setKeyboardHeight(e.endCoordinates.height);
+    });
+    const hideSub = Keyboard.addListener(hideEvent, () => {
+      setKeyboardHeight(0);
+    });
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   const pickFromGallery = async () => {
     try {
@@ -108,7 +126,6 @@ export default function UploadScreen() {
     );
   }
 
-  // ----- Post-upload success screen: no back button, just Done -----
   if (uploadComplete) {
     return (
       <View style={styles.center}>
@@ -131,40 +148,43 @@ export default function UploadScreen() {
         </View>
       )}
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={styles.captionModal}
+      <View
+        style={[
+          styles.captionBox,
+          {
+            paddingBottom: insets.bottom + 20,
+            marginBottom: keyboardHeight,
+          },
+        ]}
       >
-        <View style={[styles.captionBox, { paddingBottom: insets.bottom + 20 }]}>
-          <Text style={styles.captionLabel}>Add a caption</Text>
-          <TextInput
-            style={styles.captionInput}
-            placeholder="What's this video about?"
-            placeholderTextColor="#666"
-            value={captionText}
-            onChangeText={setCaptionText}
-          />
+        <Text style={styles.captionLabel}>Add a caption</Text>
+        <TextInput
+          style={styles.captionInput}
+          placeholder="What's this video about?"
+          placeholderTextColor="#666"
+          value={captionText}
+          onChangeText={setCaptionText}
+        />
 
-          <View style={{ marginTop: 16 }}>
-            <TagPicker selectedTags={selectedTags} onChange={setSelectedTags} />
-          </View>
-
-          <View style={{ flexDirection: 'row', gap: 12, marginTop: 16 }}>
-            <TouchableOpacity style={styles.captionCancelBtn} onPress={cancel}>
-              <Text style={{ color: '#888' }}>Cancel</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.captionPostBtn, selectedTags.length === 0 && { opacity: 0.4 }]}
-              onPress={uploadVideo}
-              disabled={uploading || selectedTags.length === 0}
-            >
-              <Text style={{ color: 'white', fontWeight: '600' }}>
-                {uploading ? 'Posting...' : 'Post'}
-              </Text>
-            </TouchableOpacity>
-          </View>
+        <View style={{ marginTop: 16 }}>
+          <TagPicker selectedTags={selectedTags} onChange={setSelectedTags} />
         </View>
-      </KeyboardAvoidingView>
+
+        <View style={{ flexDirection: 'row', gap: 12, marginTop: 16 }}>
+          <TouchableOpacity style={styles.captionCancelBtn} onPress={cancel}>
+            <Text style={{ color: '#888' }}>Cancel</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.captionPostBtn, selectedTags.length === 0 && { opacity: 0.4 }]}
+            onPress={uploadVideo}
+            disabled={uploading || selectedTags.length === 0}
+          >
+            <Text style={{ color: 'white', fontWeight: '600' }}>
+              {uploading ? 'Posting...' : 'Post'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     </View>
   );
 }
@@ -174,7 +194,7 @@ function VideoPreview({ uri }: { uri: string }) {
     p.loop = true;
     p.play();
   });
-  return <VideoView style={{ flex: 1 }} player={player} contentFit="contain" nativeControls={false} />;
+  return <VideoView style={StyleSheet.absoluteFillObject} player={player} contentFit="contain" nativeControls={false} />;
 }
 
 const styles = StyleSheet.create({
@@ -193,8 +213,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  captionModal: { justifyContent: 'flex-end', flex: 1 },
   captionBox: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     backgroundColor: '#1a1a2e',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
