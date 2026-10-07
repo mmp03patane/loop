@@ -12,12 +12,12 @@ import ProfileScreen from './src/screens/ProfileScreen';
 import FollowingScreen from './src/screens/FollowingScreen';
 import NotificationsScreen from './src/screens/NotificationsScreen';
 import CreateSeriesScreen from './src/screens/CreateSeriesScreen';
-import CameraScreen from './src/screens/CameraScreen';
 import SeriesDetailScreen from './src/screens/SeriesDetailScreen';
 import VideoDetailScreen from './src/screens/VideoDetailScreen';
 import SearchScreen from './src/screens/SearchScreen';
-import VideoEditorScreen from './src/screens/VideoEditorScreen';
-import EditTagsScreen from './src/screens/EditTagsScreen';
+import EditVideoScreen from './src/screens/EditVideoScreen';
+import UploadScreen from './src/screens/UploadScreen';
+import AddToSeriesScreen from './src/screens/AddToSeriesScreen';
 
 export type MainTabParamList = {
   Home: undefined;
@@ -30,12 +30,12 @@ export type MainTabParamList = {
 export type RootStackParamList = {
   MainTabs: undefined;
   CreateSeries: undefined;
-  Camera: { seriesId?: string; editedUri?: string; trimStart?: number; trimEnd?: number };
+  Upload: { seriesId?: string };
   SeriesDetail: { seriesId: string; title: string };
   VideoDetail: { url: string; caption: string; userName: string; id?: string; fromProfile?: boolean };
   Search: undefined;
-  VideoEditor: { uri: string; seriesId?: string };
-  EditTags: { videoId: string };
+  EditVideo: { videoId: string };
+  AddToSeries: { seriesId: string; title: string };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -54,7 +54,7 @@ function CreateOption({
   icon: any;
   label: string;
   onPress: () => void;
-  targetScreen: 'Camera' | 'CreateSeries';
+  targetScreen: 'Upload' | 'CreateSeries';
 }) {
   const navigation = useNavigation<any>();
   return (
@@ -62,8 +62,8 @@ function CreateOption({
       style={modalStyles.option}
       onPress={() => {
         onPress();
-        if (targetScreen === 'Camera') {
-          navigation.navigate('Camera', {});
+        if (targetScreen === 'Upload') {
+          navigation.navigate('Upload', {});
         } else {
           navigation.navigate('CreateSeries');
         }
@@ -182,10 +182,10 @@ function MainTabs() {
             <Text style={modalStyles.title}>Create</Text>
 
             <CreateOption
-              icon="videocam"
-              label="New Video"
+              icon="cloud-upload"
+              label="Upload Video"
               onPress={() => setCreateModalVisible(false)}
-              targetScreen="Camera"
+              targetScreen="Upload"
             />
             <CreateOption
               icon="albums"
@@ -220,8 +220,8 @@ export default function App() {
             options={{ title: 'New Series' }}
           />
           <Stack.Screen
-            name="Camera"
-            component={CameraScreen}
+            name="Upload"
+            component={UploadScreen}
             options={{ headerShown: false, presentation: 'fullScreenModal' }}
           />
           <Stack.Screen name="SeriesDetail" component={SeriesDetailScreen} />
@@ -236,14 +236,14 @@ export default function App() {
             options={{ title: 'Search' }}
           />
           <Stack.Screen
-            name="VideoEditor"
-            component={VideoEditorScreen}
-            options={{ headerShown: false, presentation: 'fullScreenModal' }}
-          />
+  name="EditVideo"
+  component={EditVideoScreen}
+  options={{ title: 'Edit Video' }}
+/>
           <Stack.Screen
-            name="EditTags"
-            component={EditTagsScreen}
-            options={{ title: 'Edit Tags' }}
+            name="AddToSeries"
+            component={AddToSeriesScreen}
+            options={{ title: 'Add Videos' }}
           />
         </Stack.Navigator>
       </NavigationContainer>

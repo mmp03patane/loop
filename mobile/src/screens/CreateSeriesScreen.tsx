@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 const API = 'http://192.168.1.102:3000';
 
 export default function CreateSeriesScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
 
@@ -14,13 +14,19 @@ export default function CreateSeriesScreen() {
       Alert.alert('Title required');
       return;
     }
-    await fetch(`${API}/series`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, description }),
-    });
-    Alert.alert('Series created!', 'Now add videos to it');
-    navigation.goBack();
+    try {
+      const res = await fetch(`${API}/series`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, description }),
+      });
+      const newSeries = await res.json();
+      // Go straight into adding videos — no dead end
+      navigation.replace('AddToSeries', { seriesId: newSeries.id, title: newSeries.title });
+    } catch (e) {
+      console.log('create series error', e);
+      Alert.alert('Could not create series');
+    }
   };
 
   return (
@@ -45,7 +51,7 @@ export default function CreateSeriesScreen() {
       />
 
       <TouchableOpacity style={styles.button} onPress={create}>
-        <Text style={styles.buttonText}>Create Series</Text>
+        <Text style={styles.buttonText}>Create & Add Videos</Text>
       </TouchableOpacity>
     </View>
   );
@@ -54,18 +60,7 @@ export default function CreateSeriesScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#0f0f1a', padding: 20 },
   label: { color: '#a78bfa', marginBottom: 8, marginTop: 16 },
-  input: {
-    backgroundColor: '#1a1a2e',
-    color: 'white',
-    padding: 14,
-    borderRadius: 12,
-  },
-  button: {
-    backgroundColor: '#7c3aed',
-    padding: 16,
-    borderRadius: 12,
-    marginTop: 30,
-    alignItems: 'center',
-  },
+  input: { backgroundColor: '#1a1a2e', color: 'white', padding: 14, borderRadius: 12 },
+  button: { backgroundColor: '#7c3aed', padding: 16, borderRadius: 12, marginTop: 30, alignItems: 'center' },
   buttonText: { color: 'white', fontWeight: '600', fontSize: 16 },
 });

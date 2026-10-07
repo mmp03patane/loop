@@ -128,7 +128,58 @@ app.get('/videos/:id', (req, res) => {
   res.json(video);
 });
 
-// Edit tags on an existing video
+// Edit a video's caption and/or tags together
+app.patch('/videos/:id', (req, res) => {
+  const video = videos.find(v => v.id === req.params.id);
+  if (!video) return res.status(404).json({ error: 'Video not found' });
+
+  if (req.body.caption !== undefined) {
+    video.caption = req.body.caption;
+  }
+
+  if (req.body.tags !== undefined) {
+    let newTags = req.body.tags || [];
+    newTags = newTags.filter(t => TAG_LIBRARY.includes(t)).slice(0, 3);
+    if (newTags.length < 1) {
+      return res.status(400).json({ error: 'At least one tag is required' });
+    }
+    video.tags = newTags;
+  }
+
+  res.json(video);
+});
+
+// Which series (if any) currently contain this video — used by the edit screen
+app.get('/videos/:id/series', (req, res) => {
+  const containing = series.filter(s => s.videoIds.includes(req.params.id));
+  res.json(containing);
+});
+
+// Add one or more existing videos to a series (videos can belong to multiple series)
+app.patch('/series/:id/add-videos', (req, res) => {
+  const s = series.find(s => s.id === req.params.id);
+  if (!s) return res.status(404).json({ error: 'Series not found' });
+
+  const videoIds = req.body.videoIds || [];
+  videoIds.forEach(vid => {
+    if (!s.videoIds.includes(vid)) {
+      s.videoIds.push(vid);
+    }
+  });
+
+  res.json(s);
+});
+
+// Remove a video from a specific series
+app.patch('/series/:id/remove-video', (req, res) => {
+  const s = series.find(s => s.id === req.params.id);
+  if (!s) return res.status(404).json({ error: 'Series not found' });
+  const { videoId } = req.body;
+  s.videoIds = s.videoIds.filter(id => id !== videoId);
+  res.json(s);
+});
+
+// Edit tags on an existing video (kept for safety / backward compatibility)
 app.patch('/videos/:id/tags', (req, res) => {
   const video = videos.find(v => v.id === req.params.id);
   if (!video) return res.status(404).json({ error: 'Video not found' });

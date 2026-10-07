@@ -26,14 +26,14 @@ export default function VideoDetailScreen() {
       </TouchableOpacity>
 
       {fromProfile && id && (
-        <TouchableOpacity
-          style={styles.editTagsBtn}
-          onPress={() => navigation.navigate('EditTags', { videoId: id })}
-        >
-          <Ionicons name="pricetag-outline" size={16} color="#a78bfa" />
-          <Text style={styles.editTagsText}>Edit Tags</Text>
-        </TouchableOpacity>
-      )}
+  <TouchableOpacity
+    style={styles.editTagsBtn}
+    onPress={() => navigation.navigate('EditVideo', { videoId: id })}
+  >
+    <Ionicons name="create-outline" size={16} color="#a78bfa" />
+    <Text style={styles.editTagsText}>Edit Video</Text>
+  </TouchableOpacity>
+)}
 
       <View style={styles.overlay}>
         <Text style={styles.username}>@{userName}</Text>
